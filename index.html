@@ -2,117 +2,182 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Shift Hari Ini – Long April</title>
+<title>Long April – Shift Hari Ini</title>
 
 <style>
-* { box-sizing:border-box; }
+* { box-sizing: border-box; }
 body {
-  margin:0;
-  padding:24px;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#0e0e0e;
-  color:#fff;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0e0e0e;
+  color: #fff;
 }
+
+/* ===== LOGIN / ROBOT ===== */
+#loginScreen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-box {
+  background: #151515;
+  padding: 40px;
+  border-radius: 18px;
+  text-align: center;
+  border: 1px solid #2a2a2a;
+  width: 320px;
+}
+
+.robot {
+  font-size: 72px;
+  margin-bottom: 16px;
+}
+
+.login-box h2 {
+  margin: 0 0 20px;
+}
+
+.login-btn {
+  background: #ffc107;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* ===== SHIFT PAGE ===== */
+#shiftScreen {
+  display: none;
+  padding: 24px;
+}
+
 h1 {
-  margin-bottom:20px;
-  font-size:26px;
+  margin-bottom: 20px;
 }
+
 .grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 16px;
 }
+
 .card {
-  background:linear-gradient(180deg,#1b1b1b,#121212);
-  border-radius:14px;
-  padding:16px;
-  text-align:center;
-  border:1px solid #2a2a2a;
+  background: linear-gradient(180deg,#1b1b1b,#121212);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid #2a2a2a;
 }
+
 .photo {
-  width:110px;
-  height:110px;
-  border-radius:50%;
-  margin:0 auto 12px;
-  overflow:hidden;
-  background:#333;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  overflow: hidden;
+  background: #333;
 }
+
 .photo img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
+
 .name {
-  font-size:18px;
-  font-weight:bold;
+  font-size: 18px;
+  font-weight: bold;
 }
+
 .division {
-  font-size:14px;
-  color:#ffc107;
-  margin:4px 0;
+  color: #ffc107;
+  font-size: 14px;
+  margin: 4px 0;
 }
+
 .shift {
-  font-size:13px;
-  opacity:.9;
+  font-size: 13px;
+  opacity: 0.9;
 }
+
 .empty {
-  opacity:.6;
-  font-style:italic;
+  opacity: 0.6;
+  font-style: italic;
 }
 </style>
 </head>
 
 <body>
 
-<h1>📅 Shift Hari Ini</h1>
-<div class="grid" id="container"></div>
+<!-- LOGIN / ROBOT -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="robot">🤖</div>
+    <h2>Long April System</h2>
+    <button class="login-btn" onclick="login()">LOGIN</button>
+  </div>
+</div>
+
+<!-- SHIFT -->
+<div id="shiftScreen">
+  <h1>📅 Shift Hari Ini</h1>
+  <div class="grid" id="container"></div>
+</div>
 
 <script>
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vTuQlF43hDnYKrFQi2s8Q93aonmYTQKSVTRrcLBaf3yJLI4rElEtJEiARSfnBIYwYPvMwpuvj8eIvIY/pub?gid=1136472262&single=true&output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTuQlF43hDnYKrFQi2s8Q93aonmYTQKSVTRrcLBaf3yJLI4rElEtJEiARSfnBIYwYPvMwpuvj8eIvIY/pub?gid=1136472262&single=true&output=csv";
 
-fetch(CSV_URL)
-.then(res => res.text())
-.then(text => {
-  const rows = text.trim().split(/\r?\n/).slice(1);
-  const container = document.getElementById("container");
+function login() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("shiftScreen").style.display = "block";
+  loadShift();
+}
 
-  if (!rows.length) {
-    container.innerHTML = "<div class='empty'>Tidak ada shift hari ini</div>";
-    return;
-  }
+function loadShift() {
+  fetch(CSV_URL)
+    .then(res => res.text())
+    .then(csv => {
+      const rows = csv.trim().split("\n").slice(1);
+      const container = document.getElementById("container");
+      container.innerHTML = "";
 
-  rows.forEach(r => {
-    // CSV SAFE PARSER (anti koma & imgur error)
-    const c = r.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-               ?.map(v => v.replace(/^"|"$/g,""));
+      if (rows.length === 0) {
+        container.innerHTML = "<div class='empty'>Tidak ada shift hari ini</div>";
+        return;
+      }
 
-    if (!c || !c[1]) return;
+      rows.forEach(row => {
+        const cols = row.split(",");
+        const nama = cols[1];
+        const divisi = cols[2];
+        const shift = cols[3];
+        const foto = cols[4];
 
-    const nama  = c[1];
-    const div   = c[2];
-    const shift = c[3];
-    const foto  = c[4];
+        if (!nama) return;
 
-    container.innerHTML += `
-      <div class="card">
-        <div class="photo">
-          <img src="${foto || 'https://i.imgur.com/8Km9tLL.png'}">
-        </div>
-        <div class="name">${nama}</div>
-        <div class="division">${div}</div>
-        <div class="shift">${shift}</div>
-      </div>
-    `;
-  });
-})
-.catch(err => {
-  console.error(err);
-  document.getElementById("container").innerHTML =
-    "<div class='empty'>Gagal load data</div>";
-});
+        container.innerHTML += `
+          <div class="card">
+            <div class="photo">
+              <img src="${foto || 'https://i.imgur.com/8Km9tLL.png'}">
+            </div>
+            <div class="name">${nama}</div>
+            <div class="division">${divisi}</div>
+            <div class="shift">${shift}</div>
+          </div>
+        `;
+      });
+    })
+    .catch(() => {
+      document.getElementById("container").innerHTML =
+        "<div class='empty'>Gagal load data</div>";
+    });
+}
 </script>
 
 </body>
+</html>
 </html>
