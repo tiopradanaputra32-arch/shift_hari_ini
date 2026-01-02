@@ -3,73 +3,61 @@
 <head>
 <meta charset="UTF-8" />
 <title>Long April System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
   font-family:Arial,Helvetica,sans-serif;
-  background:#000;
+  background:#0e0e0e;
   color:#fff;
   overflow:hidden;
 }
 
-/* ===== ROBOT ===== */
-#robotWrapper{
+/* LOGIN */
+#loginScreen{
   position:fixed;
   inset:0;
-  z-index:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#000;
+  z-index:10;
 }
-#robotWrapper iframe{
+
+.login-box{
+  background:rgba(20,20,20,.8);
+  padding:30px;
+  border-radius:18px;
+  text-align:center;
+  backdrop-filter:blur(10px);
+}
+
+.login-box h2{margin-bottom:14px}
+
+.login-box button{
+  padding:12px 28px;
+  border:none;
+  border-radius:30px;
+  background:#ffc107;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* ROBOT */
+#robotFrame{
+  position:absolute;
+  inset:0;
   width:100%;
   height:100%;
   border:none;
 }
 
-/* ===== LOGIN ===== */
-#loginScreen{
-  position:fixed;
-  inset:0;
-  z-index:10;
-  background:rgba(0,0,0,0.55);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.loginBox{
-  background:#111;
-  padding:26px 32px;
-  border-radius:18px;
-  text-align:center;
-  box-shadow:0 0 40px rgba(0,0,0,0.8);
-}
-.loginBox h2{
-  margin:0 0 14px;
-}
-.loginBtn{
-  background:#ffb300;
-  color:#000;
-  border:none;
-  padding:12px 28px;
-  border-radius:999px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-/* ===== SHIFT ===== */
+/* SHIFT */
 #shiftScreen{
   display:none;
-  position:relative;
-  z-index:5;
   padding:24px;
-  height:100vh;
   overflow:auto;
-}
-
-h1{
-  margin-bottom:20px;
 }
 
 .grid{
@@ -79,61 +67,45 @@ h1{
 }
 
 .card{
-  background:#151515;
+  background:#161616;
   border-radius:16px;
   padding:16px;
   text-align:center;
 }
 
 .photo{
-  width:110px;
-  height:110px;
+  width:100px;
+  height:100px;
   border-radius:50%;
   overflow:hidden;
-  margin:0 auto 12px;
-  background:#333;
+  margin:0 auto 10px;
 }
+
 .photo img{
   width:100%;
   height:100%;
   object-fit:cover;
 }
 
-.name{
-  font-size:18px;
-  font-weight:bold;
-}
-.divisi{
-  color:#ffb300;
-  font-size:14px;
-  margin:4px 0;
-}
-.shift{
-  font-size:13px;
-  opacity:.85;
-}
-.empty{
-  opacity:.6;
-  font-style:italic;
-}
+.name{font-weight:bold;font-size:18px}
+.divisi{color:#ffc107;font-size:14px}
+.shift{font-size:13px;opacity:.9}
 </style>
 </head>
 
 <body>
 
-<!-- ROBOT -->
-<div id="robotWrapper">
-  <iframe
-    src="https://my.spline.design/nexbotrobotcharacterconcept-4BIXj9AKtuPQ0H1tFEFfcGK6/"
-    allow="autoplay; fullscreen"
-  ></iframe>
-</div>
-
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="loginBox">
+  <iframe
+    id="robotFrame"
+    src="https://my.spline.design/nexbotrobotcharacterconcept-4BIXj9AKtuPQ0H1tFEFfcGK6/"
+    allowfullscreen>
+  </iframe>
+
+  <div class="login-box">
     <h2>🤖 Long April System</h2>
-    <button class="loginBtn" onclick="login()">LOGIN</button>
+    <button onclick="login()">LOGIN</button>
   </div>
 </div>
 
@@ -144,45 +116,38 @@ h1{
 </div>
 
 <script>
-const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vTuQlF43hDnYKrFQi2s8Q93aonmYTQKSVTRrcLBaf3yJLI4rElEtJEiARSfnBIYwYPvMwpuvj8eIvIY/pub?gid=1136472262&single=true&output=csv";
-
 function login(){
   document.getElementById("loginScreen").style.display="none";
-  document.getElementById("robotWrapper").style.display="none";
   document.getElementById("shiftScreen").style.display="block";
   loadShift();
 }
 
 function loadShift(){
+  const CSV_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTuQlF43hDnYKrFQi2s8Q93aonmYTQKSVTRrcLBaf3yJLI4rElEtJEiARSfnBIYwYPvMwpuvj8eIvIY/pub?gid=1136472262&single=true&output=csv";
+
   fetch(CSV_URL)
-    .then(r=>r.text())
-    .then(csv=>{
-      const rows=csv.trim().split("\n").slice(1);
-      const c=document.getElementById("container");
-      if(!rows.length){
-        c.innerHTML="<div class='empty'>Tidak ada shift hari ini</div>";
-        return;
-      }
-      rows.forEach(r=>{
-        const col=r.split(",");
-        if(!col[1])return;
-        c.innerHTML+=`
-          <div class="card">
-            <div class="photo">
-              <img src="${col[4]||'https://i.imgur.com/8Km9tLL.png'}">
-            </div>
-            <div class="name">${col[1]}</div>
-            <div class="divisi">${col[2]}</div>
-            <div class="shift">${col[3]}</div>
-          </div>
-        `;
-      });
-    })
-    .catch(()=>{
-      document.getElementById("container").innerHTML=
-        "<div class='empty'>Gagal load data</div>";
+  .then(r=>r.text())
+  .then(csv=>{
+    const rows=csv.trim().split("\n").slice(1);
+    const c=document.getElementById("container");
+    c.innerHTML="";
+    rows.forEach(r=>{
+      const d=r.split(",");
+      if(!d[1])return;
+      c.innerHTML+=`
+      <div class="card">
+        <div class="photo">
+          <img src="${d[4]||'https://i.imgur.com/8Km9tLL.png'}">
+        </div>
+        <div class="name">${d[1]}</div>
+        <div class="divisi">${d[2]}</div>
+        <div class="shift">${d[3]}</div>
+      </div>`;
     });
+  })
+  .catch(()=>{
+    document.getElementById("container").innerHTML="Gagal load data";
+  });
 }
 </script>
 
